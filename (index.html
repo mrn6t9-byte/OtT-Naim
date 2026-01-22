@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OTT Player</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+</head>
+<body style="background:black; text-align:center;">
+
+  <h2 style="color:white;">My OTT Player</h2>
+
+  <video id="video" controls width="80%" height="auto"></video>
+
+  <script>
+    var video = document.getElementById('video');
+    var videoSrc = "PASTE_M3U8_LINK_HERE";
+
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource(videoSrc);
+      hls.attachMedia(video);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = videoSrc;
+    }
+  </script>
+
+</body>
+</html>
