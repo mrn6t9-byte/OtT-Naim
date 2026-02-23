@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiham 75 Live 🔴</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<!-- Shaka Player -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
+
+<!-- Video.js -->
+<link href="https://vjs.zencdn.net/8.11.0/video-js.css" rel="stylesheet" />
+<script src="https://vjs.zencdn.net/8.11.0/video.min.js"></script>
+
+<!-- JW Player -->
+<script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
+
+<style>
+body{margin:0;background:#02090c;color:#fff;font-family:'Inter',sans-serif;}
+.header{text-align:center;padding:22px;font-size:28px;font-weight:800;color:#ffdd00;text-shadow:0 0 20px #ffdd00;}
+#matches{max-width:650px;margin:auto;padding:10px;}
+.match-card{background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);border-radius:22px;padding:18px;margin:18px 0;box-shadow:0 0 25px rgba(0,0,0,.6);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:.3s;}
+.match-card:hover{transform:scale(1.03);}
+.flag{width:56px;border-radius:6px;}
+.match-info{text-align:center;flex:1;margin:0 10px;}
+.match-title{font-size:22px;font-weight:800;color:#00ffe7;text-shadow:0 0 10px #00ffe7;}
+.match-sub{font-size:14px;color:#ddd;margin-top:4px;}
+.timer{font-size:18px;font-weight:700;margin-top:6px;}
+.live-center{display:none;text-align:center;color:#ff2e2e;font-size:16px;font-weight:900;margin-top:5px;}
+#playerPage{display:none;position:fixed;inset:0;background:#000;z-index:999;padding:15px;overflow:auto;}
+.back{font-size:18px;color:#00ffd5;font-weight:700;cursor:pointer;margin-bottom:10px;}
+.player-title{text-align:center;font-size:22px;font-weight:800;color:#ffdd00;margin:10px 0;}
+.player-container{position:relative;width:100%;padding-top:56.25%;margin-bottom:10px;}
+.player-container > *{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:18px;background:#000;}
+#shakaVideo,#videoJsPlayer,#jwPlayerContainer,iframe{display:none;}
+.source-btn{width:100%;margin:8px 0;padding:12px;border:none;border-radius:14px;font-size:16px;font-weight:800;color:#fff;cursor:pointer;background:linear-gradient(90deg,#ff004c,#ffb300,#00e5ff,#ff004c);background-size:300% 300%;animation:rgb 6s linear infinite;}
+@keyframes rgb{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.controls{display:flex;gap:10px;margin-top:10px;}
+.ctrl{flex:1;padding:12px;border:none;border-radius:14px;font-weight:800;cursor:pointer;}
+.play{background:#ff6a00;color:#fff;}
+.pip{background:#111;color:#00ffd5;}
+.share{background:#0088cc;color:#fff;}
+#popup{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;display:none;}
+.popup-box{background:#111;padding:25px;border-radius:20px;text-align:center;box-shadow:0 0 30px #00ffe7;}
+.popup-box button{margin:10px;padding:10px 20px;border:none;border-radius:12px;font-weight:800;cursor:pointer;}
+.join{background:#0088cc;color:#fff;}
+.joined{background:#444;color:#fff;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#111;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -5px 15px rgba(0,0,0,.5);}
+.bottom-nav button{background:none;border:none;color:#00ffe7;font-weight:800;font-size:14px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="header">Fiham 7t5 Live 🔴</div>
+<div id="matches"></div>
+
+<div id="playerPage">
+  <div class="back" onclick="goBack()">← Back</div>
+  <div class="player-title" id="playerTitle"></div>
+  <div class="player-container">
+    <video id="shakaVideo" controls playsinline></video>
+    <video id="videoJsPlayer" class="video-js" controls></video>
+    <div id="jwPlayerContainer"></div>
+    <iframe id="ytPlayer" frameborder="0" allow="accelerometer; autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+  </div>
+  <div id="sources"></div>
+  <div class="controls">
+    <button class="ctrl play" onclick="playCurrent()">▶ Play</button>
+    <button class="ctrl pip" onclick="pip()">⧉ PiP</button>
+    <button class="ctrl share" onclick="share()">↗ Share</button>
+  </div>
+</div>
+
+<div id="popup">
+  <div class="popup-box">
+    <h3>Join Telegram Channel</h3>
+    <button class="join" onclick="joinTelegram()">Join</button>
+    <button class="joined" onclick="closePopup()">Already Joined</button>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button onclick="scrollToTop()">Home</button>
+  <button onclick="alert('Live Matches')">Live</button>
+  <button onclick="alert('Settings Coming Soon')">Settings</button>
+</div>
+
+<script>
+let shakaPlayer=null;
+let videoJsInstance=null;
+let jwPlayerInstance=null;
+let currentPlayer=null;
+
+const matchesDiv=document.getElementById("matches");
+const playerTitle=document.getElementById("playerTitle");
+const sourcesDiv=document.getElementById("sources");
+
+const shakaVideo=document.getElementById("shakaVideo");
+const videoJsPlayer=document.getElementById("videoJsPlayer");
+const jwPlayerContainer=document.getElementById("jwPlayerContainer");
+const ytPlayer=document.getElementById("ytPlayer");
+
+// --- MATCH DATA (5 matches, 4 sources each) ---
+const matches=[
+  {
+    title:"PAK vs NED",
+    sub:"T20 WC • 11:30AM",
+    left:"https://flagcdn.com/w80/pk.png",
+    right:"https://flagcdn.com/nl.svg",
+    start:"2026-02-07T11:30:00",
+    sources:[
+      {name:"Shaka HLS",link:"https://allinonereborn.online/mix.m3u8/live4.php?id=303629"},
+      {name:"Video.js MP4",link:"https://allinonereborn.online/mix.m3u8/live4.php?id=303629"},
+      {name:"JW Player",link:"https://allinonereborn.online/mix.m3u8/live4.php?id=303629"},
+      {name:"YouTube",link:"https://allinonereborn.online/mix.m3u8/live4.php?id=303629"}
+    ]
+  },
+  {
+    title:"WI vs FKR",
+    sub:"T20 WC • 03:30PM",
+    left:"https://flagcdn.com/w80/vc.png",
+    right:"https://flagcdn.com/w80/gb-sct.png",
+    start:"2026-02-07T15:30:00",
+    sources:[
+      {name:"Shaka HLS",link:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"},
+      {name:"Video.js MP4",link:"https://vjs.zencdn.net/v/oceans.mp4"},
+      {name:"JW Player",link:"https://content.jwplatform.com/manifests/yp34SRmf.m3u8"},
+      {name:"YouTube",link:"https://www.youtube.com/watch?v=5NV6Rdv1a3I"}
+    ]
+  },
+  {
+    title:"IND vs USA",
+    sub:"T20 WC • 07:30PM",
+    left:"https://flagcdn.com/w80/in.png",
+    right:"https://flagcdn.com/w80/us.png",
+    start:"2026-02-07T19:30:00",
+    sources:[
+      {name:"Shaka HLS",link:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"},
+      {name:"Video.js MP4",link:"https://vjs.zencdn.net/v/oceans.mp4"},
+      {name:"JW Player",link:"https://content.jwplatform.com/manifests/yp34SRmf.m3u8"},
+      {name:"YouTube",link:"https://www.youtube.com/watch?v=Zi_XLOBDo_Y"}
+    ]
+  },
+  {
+    title:"IND vs NZ",
+    sub:"5th T20 • 19:30PM",
+    left:"https://flagcdn.com/w80/in.png",
+    right:"https://flagcdn.com/w80/nz.png",
+    start:"2026-01-31T19:30:00",
+    sources:[
+      {name:"Shaka HLS",link:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"},
+      {name:"Video.js MP4",link:"https://vjs.zencdn.net/v/oceans.mp4"},
+      {name:"JW Player",link:"https://content.jwplatform.com/manifests/yp34SRmf.m3u8"},
+      {name:"YouTube",link:"https://www.youtube.com/watch?v=hY7m5jjJ9mM"}
+    ]
+  },
+  {
+    title:"SL vs ENG",
+    sub:"2ND T20 • 07:30PM",
+    left:"https://flagcdn.com/w80/lk.png",
+    right:"https://flagcdn.com/w80/gb.png",
+    start:"2026-02-01T19:30:00",
+    sources:[
+      {name:"Shaka HLS",link:"https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8"},
+      {name:"Video.js MP4",link:"https://vjs.zencdn.net/v/oceans.mp4"},
+      {name:"JW Player",link:"https://content.jwplatform.com/manifests/yp34SRmf.m3u8"},
+      {name:"YouTube",link:"https://www.youtube.com/watch?v=J---aiyznGQ"}
+    ]
+  }
+];
+
+// --- CREATE MATCH CARDS ---
+matches.forEach(m=>{
+  const card=document.createElement("div");
+  card.className="match-card";
+  card.innerHTML=`
+    <img class="flag" src="${m.left}">
+    <div class="match-info">
+      <div class="match-title">${m.title}</div>
+      <div class="match-sub">${m.sub}</div>
+      <div class="timer">00:00:00</div>
+      <div class="live-center">LIVE</div>
+    </div>
+    <img class="flag" src="${m.right}">
+  `;
+  matchesDiv.appendChild(card);
+
+  const startTime=new Date(m.start);
+  const timerEl=card.querySelector(".timer");
+  const liveEl=card.querySelector(".live-center");
+  setInterval(()=>{
+    const diff=startTime-new Date();
+    if(diff<=0){ timerEl.innerText="LIVE"; liveEl.style.display="block"; }
+    else{
+      const h=Math.floor(diff/3600000);
+      const m=Math.floor((diff%3600000)/60000);
+      const s=Math.floor((diff%60000)/1000);
+      timerEl.innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+  },1000);
+
+  card.onclick=()=>{ openMatch(m); popup.style.display="flex"; }
+});
+
+// --- OPEN MATCH ---
+async function openMatch(m){
+  document.getElementById("matches").style.display="none";
+  document.getElementById("playerPage").style.display="block";
+  playerTitle.innerText=`${m.title} • ${m.sub}`;
+
+  shakaVideo.style.display=videoJsPlayer.style.display=jwPlayerContainer.style.display=ytPlayer.style.display="none";
+  if(shakaPlayer) await shakaPlayer.destroy();
+  shakaPlayer=new shaka.Player(shakaVideo);
+  if(videoJsInstance) videoJsInstance.dispose();
+  if(jwPlayerInstance) jwPlayerInstance.remove();
+
+  sourcesDiv.innerHTML="";
+  m.sources.forEach(s=>{
+    const btn=document.createElement("button");
+    btn.className="source-btn";
+    btn.innerText=s.name;
+    btn.onclick=()=>playSource(s);
+    sourcesDiv.appendChild(btn);
+  });
+
+  playSource(m.sources[0]);
+}
+
+// --- PLAY SOURCE ---
+function playSource(s){
+  shakaVideo.style.display=videoJsPlayer.style.display=jwPlayerContainer.style.display=ytPlayer.style.display="none";
+  shakaVideo.pause(); if(videoJsInstance) videoJsInstance.pause(); ytPlayer.src="";
+  if(jwPlayerInstance) jwPlayerInstance.remove();
+
+  if(s.name.toLowerCase().includes("shaka")){
+    shakaVideo.style.display="block";
+    shakaPlayer.load(s.link);
+    currentPlayer=shakaVideo;
+  }else if(s.name.toLowerCase().includes("video.js")){
+    videoJsPlayer.style.display="block";
+    videoJsInstance=videojs(videoJsPlayer);
+    videoJsInstance.src({src:s.link,type:s.link.includes(".m3u8")?"application/x-mpegURL":"video/mp4"});
+    videoJsInstance.play();
+    currentPlayer=videoJsPlayer;
+  }else if(s.name.toLowerCase().includes("jw")){
+    jwPlayerContainer.style.display="block";
+    jwPlayerInstance=jwplayer("jwPlayerContainer").setup({file:s.link,width:"100%",aspectratio:"16:9",autostart:true});
+  }else if(s.name.toLowerCase().includes("youtube")){
+    ytPlayer.style.display="block";
+    let id=s.link.split("v=")[1]||s.link.split("youtu.be/")[1];
+    if(id.includes("&")) id=id.split("&")[0];
+    ytPlayer.src=`https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+  }
+}
+
+// --- CONTROLS ---
+function playCurrent(){ if(currentPlayer) currentPlayer.play(); }
+function pip(){ if(currentPlayer) document.pictureInPictureElement?document.exitPictureInPicture():currentPlayer.requestPictureInPicture(); }
+function share(){ const t=playerTitle.innerText+"\nhttps://example.com"; navigator.share?navigator.share({text:t}):prompt("Copy & Share",t); }
+function joinTelegram(){ window.open("https://t.me/+EUu_2FFLJsdmMGU9","_blank"); }
+function closePopup(){ popup.style.display="none"; }
+function goBack(){ document.getElementById("playerPage").style.display="none"; document.getElementById("matches").style.display="block"; }
+function scrollToTop(){ window.scrollTo({top:0,behavior:"smooth"}); }
+</script>
+</body>
+</html>
